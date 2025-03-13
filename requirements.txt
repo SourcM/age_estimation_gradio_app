@@ -1,0 +1,5 @@
+numpy
+onnx
+onnxruntime
+opencv-python
+gradio>=3.50.0
