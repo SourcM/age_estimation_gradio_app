@@ -18,7 +18,8 @@ class CenterFace(object):
     def __init__(self, landmarks=True):
         self.landmarks = landmarks
         if self.landmarks:
-            self.net = cv2.dnn.readNetFromONNX(os.path.join(path2, 'centerface_640_640.onnx'))
+            model_path = os.path.join(path2, 'centerface_640_640.onnx')
+            self.net = cv2.dnn.readNetFromONNX(model_path)
         self.img_h_new, self.img_w_new, self.scale_h, self.scale_w = 0, 0, 0, 0
 
     def __call__(self, img, height, width, threshold=0.5):
@@ -104,7 +105,7 @@ class CenterFace(object):
         areas = (x2 - x1 + 1) * (y2 - y1 + 1)
         order = np.argsort(scores)[::-1]
         num_detections = boxes.shape[0]
-        suppressed = np.zeros((num_detections,), dtype=np.bool)
+        suppressed = np.zeros((num_detections,), dtype=np.bool_)  # Fixed: np.bool -> np.bool_
 
         keep = []
         while order.size > 0:
@@ -181,8 +182,13 @@ def get_model(model_file):
     return sess
 
 # Initialize models
-centerface = CenterFace()
-sess = get_model(os.path.join(path2, 'age1.onnx'))
+try:
+    centerface = CenterFace()
+    age_model_path = os.path.join(path2, 'age1.onnx')
+    sess = get_model(age_model_path)
+    print(f"Models loaded successfully from {path2}")
+except Exception as e:
+    print(f"Error loading models: {e}")
 
 # Main prediction function
 def predict_age(input_img):
@@ -270,6 +276,7 @@ For best results:
 - Image should contain a clear, frontal face
 - Good lighting conditions are recommended
 - Consider removing glasses for better accuracy
+- Ensure the image has been loaded and displayed before you press the 'Submit' button
 """
 
 # Create the Gradio interface
@@ -285,7 +292,8 @@ iface = gr.Interface(
     examples=[
         # You can add example images here if you want
     ],
-    cache_examples=False  # Don't cache example inputs
+    cache_examples=False,  # Don't cache example inputs
+    allow_flagging="never"
 )
 
 # Define cleanup function for when the app closes
@@ -304,7 +312,7 @@ if __name__ == "__main__":
     try:
         # Add privacy notice to description
         description += "\n\n**Privacy Notice**: All uploaded images are processed locally and immediately deleted after processing."
-        iface.launch()
+        iface.launch(server_name="0.0.0.0", server_port=6006, share=True)
     finally:
         # Clean up when the app is closed
         cleanup_temp_files()

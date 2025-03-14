@@ -40,7 +40,7 @@ def procrustes(X, Y, scaling=False, reflection='best'):
     V = Vt.T
     T = np.dot(V, U.T)
 
-    if reflection is not 'best':
+    if reflection != 'best':  # Fixed: changed "is not" to "!="
         # does the current solution use a reflection?
         have_reflection = np.linalg.det(T) < 0
         # if that's not what was specified, force another reflection
@@ -129,11 +129,10 @@ def preprocess_img(img):
     # ccropped = resized[a:b, c:d] # center crop the image
     ccropped = cv2.resize(img, (112, 112))
    
-
     return ccropped
 
 def compare_features(ff, ff1, names, threshd=0.394):
-    
+    from scipy.spatial import distance
     
     data = distance.cdist(ff1, ff, 'cosine')
     res = np.argmin(data)
@@ -235,13 +234,3 @@ def crop_face2(image, coords):
     outCoord5 = rotate_coords(coords5, Tform)
 
     return outImage
-
-def softmax2(x):
-    x = x- np.max(x)
-    return np.exp(x)/sum(np.exp(x))
-
-
-        
-
-
-

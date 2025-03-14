@@ -1,13 +1,18 @@
 import numpy as np
 import cv2
 import datetime
+import os
+from pathlib import Path
 
 
 class CenterFace(object):
-    def __init__(self, landmarks=True):
+    def __init__(self, landmarks=True, model_path=None):
         self.landmarks = landmarks
         if self.landmarks:
-            self.net = cv2.dnn.readNetFromONNX('/content/drive/MyDrive/ACS/crop_faces/centerface_640_640.onnx') #change this please
+            # Use provided model path or default to local directory
+            if model_path is None:
+                model_path = os.path.join(os.getcwd(), 'centerface_640_640.onnx')
+            self.net = cv2.dnn.readNetFromONNX(model_path)
         self.img_h_new, self.img_w_new, self.scale_h, self.scale_w = 0, 0, 0, 0
 
     def __call__(self, img, height, width, threshold=0.5):
@@ -91,7 +96,7 @@ class CenterFace(object):
         areas = (x2 - x1 + 1) * (y2 - y1 + 1)
         order = np.argsort(scores)[::-1]
         num_detections = boxes.shape[0]
-        suppressed = np.zeros((num_detections,), dtype=np.bool)
+        suppressed = np.zeros((num_detections,), dtype=np.bool_)  # Fixed np.bool to np.bool_
 
         keep = []
         for _i in range(num_detections):
@@ -172,7 +177,7 @@ class CenterFace(object):
         areas = (x2 - x1 + 1) * (y2 - y1 + 1)
         order = np.argsort(scores)[::-1]
         num_detections = boxes.shape[0]
-        suppressed = np.zeros((num_detections,), dtype=np.bool)
+        suppressed = np.zeros((num_detections,), dtype=np.bool_)  # Fixed np.bool to np.bool_
 
         keep = []
         while order.size > 0:
